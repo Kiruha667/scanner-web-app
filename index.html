@@ -149,7 +149,7 @@ inp.addEventListener('keydown', e => {
   if (e.key === 'Enter') { clearTimeout(debounce); find(inp.value.trim()); }
 });
 
-function clearInput() { inp.value = ''; cb.classList.remove('visible'); hide(); inp.focus(); }
+function clearInput() { inp.value = ''; cb.classList.remove('visible'); hide();  }
 function hide() { card.className = 'card'; emptyEl.style.display = ''; }
 
 function find(raw) {
@@ -215,7 +215,7 @@ async function forceRefresh() {
     setStatus('err', 'Ошибка');
   }
   btn.classList.remove('spin');
-  inp.focus();
+  
 }
 
 async function init() {
@@ -226,7 +226,7 @@ async function init() {
       // Мгновенно показываем кэш
       applyData(JSON.parse(cached), true);
       setStatus('ok', 'Из кэша');
-      inp.focus();
+      
       // Фоновое обновление если кэш старше 1 часа
       if (Date.now() - cachedTime > CACHE_TTL) {
         setStatus('loading', 'Обновление...');
@@ -251,7 +251,7 @@ async function init() {
   } catch(e) {
     setStatus('err', 'Ошибка');
   }
-  inp.focus();
+  
 }
 
 init();
