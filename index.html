@@ -136,18 +136,30 @@ const sb = document.getElementById('scanBox');
 const card = document.getElementById('card');
 const emptyEl = document.getElementById('emptyEl');
 
-// Фокус без клавиатуры — inputmode=none + focus после тапа
-document.addEventListener('click', () => {
+function focusInput() {
   inp.focus();
+}
+
+// Фокус при загрузке
+setTimeout(focusInput, 300);
+
+// Фокус когда страница снова становится видимой
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) setTimeout(focusInput, 300);
 });
+
+// Фокус когда окно получает фокус
+window.addEventListener('focus', () => setTimeout(focusInput, 300));
+
+// Фокус по тапу
+document.addEventListener('click', focusInput);
 
 inp.addEventListener('focus', () => sb.classList.add('focused'));
 inp.addEventListener('blur', () => {
   sb.classList.remove('focused');
-  // Если потеряли фокус — восстанавливаем через 100мс
   setTimeout(() => {
-    if (document.activeElement !== inp) inp.focus();
-  }, 100);
+    if (document.activeElement !== inp) focusInput();
+  }, 200);
 });
 
 inp.addEventListener('input', () => {
