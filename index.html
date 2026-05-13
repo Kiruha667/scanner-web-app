@@ -18,11 +18,11 @@ body { background: #0d0d14; color: #f0f0f8; font-family: system-ui,-apple-system
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 .scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; }
 .scan-box { background: #13131f; border: 2px solid #252535; border-radius: 16px; padding: 16px; transition: border-color 0.2s; }
-.scan-box.active { border-color: #4f7cff; }
+.scan-box.focused { border-color: #4f7cff; }
 .scan-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6b85; margin-bottom: 10px; }
-.scan-row { display: flex; align-items: center; gap: 10px; min-height: 36px; }
-.scan-value { flex: 1; font-size: 24px; font-weight: 700; color: #f0f0f8; min-width: 0; word-break: break-all; }
-.scan-value.placeholder { color: #2e2e42; font-weight: 400; font-size: 17px; }
+.scan-row { display: flex; align-items: center; gap: 10px; }
+#barcodeInput { flex: 1; background: transparent; border: none; outline: none; font-size: 24px; font-weight: 700; color: #f0f0f8; min-width: 0; caret-color: #4f7cff; }
+#barcodeInput::placeholder { color: #2e2e42; font-weight: 400; font-size: 17px; }
 .clear-btn { width: 34px; height: 34px; border-radius: 8px; background: #1c1c2e; border: 1.5px solid #252535; color: #6b6b85; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .clear-btn.visible { opacity: 1; pointer-events: all; }
 .card { background: #13131f; border: 2px solid #252535; border-radius: 16px; overflow: hidden; display: none; }
@@ -72,7 +72,7 @@ body { background: #0d0d14; color: #f0f0f8; font-family: system-ui,-apple-system
   <div class="scan-box" id="scanBox">
     <div class="scan-label">Штрихкод</div>
     <div class="scan-row">
-      <div class="scan-value placeholder" id="scanValue">Сканируйте товар...</div>
+      <input type="text" id="barcodeInput" inputmode="none" placeholder="Сканируйте товар..." autocomplete="off" autocorrect="off" spellcheck="false">
       <button class="clear-btn" id="clearBtn" onclick="clearInput()">✕</button>
     </div>
   </div>
@@ -129,47 +129,40 @@ const CACHE_TTL = 60 * 60 * 1000; // 1 час — фоновое обновле�
 
 let catalog = {};
 let debounce = null;
-let buffer = '';
 
+const inp = document.getElementById('barcodeInput');
 const cb = document.getElementById('clearBtn');
 const sb = document.getElementById('scanBox');
-const sv = document.getElementById('scanValue');
 const card = document.getElementById('card');
 const emptyEl = document.getElementById('emptyEl');
 
-function setBuffer(val) {
-  buffer = val;
-  if (val) {
-    sv.textContent = val;
-    sv.classList.remove('placeholder');
-    cb.classList.add('visible');
-    sb.classList.add('active');
-  } else {
-    sv.textContent = 'Сканируйте товар...';
-    sv.classList.add('placeholder');
-    cb.classList.remove('visible');
-    sb.classList.remove('active');
-  }
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    clearTimeout(debounce);
-    if (buffer) find(buffer);
-    return;
-  }
-  if (e.key === 'Backspace') {
-    setBuffer(buffer.slice(0, -1));
-    return;
-  }
-  if (e.key.length === 1) {
-    setBuffer(buffer + e.key);
-    clearTimeout(debounce);
-    debounce = setTimeout(() => { if (buffer) find(buffer); }, 300);
-  }
+// Фокус без клавиатуры — inputmode=none + focus после тапа
+document.addEventListener('click', () => {
+  inp.focus();
 });
 
-function clearInput() { setBuffer(''); hide(); }
+inp.addEventListener('focus', () => sb.classList.add('focused'));
+inp.addEventListener('blur', () => {
+  sb.classList.remove('focused');
+  // Если потеряли фокус — восстанавливаем через 100мс
+  setTimeout(() => {
+    if (document.activeElement !== inp) inp.focus();
+  }, 100);
+});
+
+inp.addEventListener('input', () => {
+  const v = inp.value.trim();
+  cb.classList.toggle('visible', v.length > 0);
+  clearTimeout(debounce);
+  if (!v) { hide(); return; }
+  debounce = setTimeout(() => find(v), 300);
+});
+
+inp.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { clearTimeout(debounce); find(inp.value.trim()); }
+});
+
+function clearInput() { inp.value = ''; cb.classList.remove('visible'); hide(); }
 function hide() { card.className = 'card'; emptyEl.style.display = ''; }
 
 function find(raw) {
