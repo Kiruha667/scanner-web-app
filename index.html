@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Сканер">
+<title>Сканер товаров</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: #2a2a38;
+    --accent: #4f7cff;
+    --accent-glow: rgba(79,124,255,0.3);
+    --green: #22c55e;
+    --green-glow: rgba(34,197,94,0.25);
+    --red: #ef4444;
+    --text: #f0f0f8;
+    --text-muted: #6b6b85;
+    --text-dim: #3a3a52;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    padding: 20px 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    transition: all 0.4s;
+    box-shadow: none;
+  }
+  .status-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green-glow); }
+  .status-dot.loading { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Main */
+  .main {
+    flex: 1;
+    padding: 24px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Input area */
+  .scan-area {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .scan-area.focused {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .scan-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .scan-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .scan-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .scan-icon svg { width: 20px; height: 20px; stroke: var(--accent); }
+
+  #barcodeInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    caret-color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  #barcodeInput::placeholder { color: var(--text-dim); font-weight: 400; font-size: 15px; letter-spacing: 0; }
+
+  .clear-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .clear-btn.visible { opacity: 1; pointer-events: all; }
+  .clear-btn:active { background: var(--border); transform: scale(0.92); }
+
+  /* Result card */
+  .result-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: scale(0.96) translateY(8px);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .result-card.visible {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-glow), 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .result-card.not-found {
+    border-color: var(--red);
+    box-shadow: 0 0 0 1px rgba(239,68,68,0.2);
+  }
+
+  .card-top {
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(79,124,255,0.08), rgba(79,124,255,0.02));
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .found-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .found-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green-glow);
+  }
+  .not-found-badge {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+
+  .sku-tag {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    letter-spacing: 0.05em;
+  }
+
+  .card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .product-name {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .product-brand {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+  }
+
+  .price-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .price-block {
+    flex: 1;
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+  }
+  .price-block.primary {
+    border-color: var(--accent);
+    background: rgba(79,124,255,0.06);
+  }
+
+  .price-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .price-value {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .price-block.primary .price-value { color: var(--accent); }
+
+  .price-currency {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 2px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 20px;
+    opacity: 0.4;
+  }
+  .empty-state svg { width: 48px; height: 48px; stroke: var(--text-muted); }
+  .empty-state p {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .stats-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .stats-count {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .refresh-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    display: flex; align-items: center;
+  }
+  .refresh-btn:active { color: var(--accent); transform: rotate(180deg); }
+  .refresh-btn svg { width: 16px; height: 16px; stroke: currentColor; }
+  .refresh-btn.spinning svg { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    z-index: 100;
+    transition: opacity 0.5s;
+  }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+  .loader-logo {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .loader-bar {
+    width: 120px; height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .loader-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s;
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .loader-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loader-logo">СКАНЕР</div>
+  <div class="loader-bar">
+    <div class="loader-bar-fill" id="loaderBarFill"></div>
+  </div>
+  <div class="loader-text" id="loaderText">Загрузка каталога...</div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">Сканер</div>
+  <div class="status-dot" id="statusDot"></div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Scan input -->
+  <div class="scan-area" id="scanArea">
+    <div class="scan-label">Штрихкод</div>
+    <div class="scan-input-row">
+      <div class="scan-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+          <path d="M3 5h2M3 5v2M21 5h-2M21 5v2M3 19h2M3 19v-2M21 19h-2M21 19v-2"/>
+          <line x1="7" y1="5" x2="7" y2="19"/><line x1="10" y1="5" x2="10" y2="19"/>
+          <line x1="13" y1="5" x2="13" y2="10"/><line x1="16" y1="5" x2="16" y2="19"/>
+          <line x1="13" y1="14" x2="13" y2="19"/>
+        </svg>
+      </div>
+      <input type="text" id="barcodeInput" placeholder="Сканируйте товар..." autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="clear-btn" id="clearBtn" onclick="clearInput()">✕</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+    <div class="card-top">
+      <div class="found-badge" id="foundBadge">
+        <div class="dot"></div>
+        <span>Найдено</span>
+      </div>
+      <div class="not-found-badge" id="notFoundBadge" style="display:none">Не найдено</div>
+      <div class="sku-tag" id="skuTag"></div>
+    </div>
+    <div class="card-body" id="cardBody">
+      <div class="product-brand" id="productBrand"></div>
+      <div class="product-name" id="productName"></div>
+      <div class="divider"></div>
+      <div class="price-row">
+        <div class="price-block primary">
+          <div class="price-label">Прайс</div>
+          <div class="price-value" id="priceValue">—<span class="price-currency">₸</span></div>
+        </div>
+        <div class="price-block">
+          <div class="price-label">PP1</div>
+          <div class="price-value" id="pp1Value">—<span class="price-currency">₸</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" id="emptyState">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round">
+      <rect x="2" y="3" width="20" height="14" rx="2"/>
+      <line x1="8" y1="21" x2="16" y2="21"/>
+      <line x1="12" y1="17" x2="12" y2="21"/>
+    </svg>
+    <p>Отсканируйте штрихкод<br>для поиска товара</p>
+  </div>
+
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stats-text">Товаров в базе: <span class="stats-count" id="catalogCount">—</span></div>
+  <button class="refresh-btn" id="refreshBtn" onclick="loadCatalog()" title="Обновить">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+      <path d="M21 2v6h-6M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6M21 12a9 9 0 01-15 6.7L3 16"/>
+    </svg>
+  </button>
+</div>
+
+<script>
+// ============================================================
+// НАСТРОЙКА — вставь сюда URL своего Web App
+// ============================================================
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw_ZusGkjrp5w3SRlbEZ4JVxygquk5C7bePlUwMI5BzVUjQ9vdUxd51YQEkoI3e06Ir/exec';
+// ============================================================
+
+let catalog = {};
+let debounceTimer = null;
+
+const input = document.getElementById('barcodeInput');
+const clearBtn = document.getElementById('clearBtn');
+const scanArea = document.getElementById('scanArea');
+const resultCard = document.getElementById('resultCard');
+const emptyState = document.getElementById('emptyState');
+
+// Focus/blur
+input.addEventListener('focus', () => scanArea.classList.add('focused'));
+input.addEventListener('blur', () => scanArea.classList.remove('focused'));
+
+// Input handler
+input.addEventListener('input', () => {
+  const val = input.value.trim();
+  clearBtn.classList.toggle('visible', val.length > 0);
+  
+  clearTimeout(debounceTimer);
+  if (val.length === 0) {
+    hideResult();
+    return;
+  }
+  // Аппаратный сканер — поиск сразу при Enter или после паузы
+  debounceTimer = setTimeout(() => search(val), 300);
+});
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    clearTimeout(debounceTimer);
+    search(input.value.trim());
+  }
+});
+
+function clearInput() {
+  input.value = '';
+  clearBtn.classList.remove('visible');
+  hideResult();
+  input.focus();
+}
+
+function hideResult() {
+  resultCard.classList.remove('visible', 'not-found');
+  emptyState.style.display = '';
+}
+
+function search(raw) {
+  if (!raw) return;
+  // Обрезаем суффикс после _ и нецифровые символы в конце
+  const sku = raw.replace(/_[^_]+$/, '').replace(/[^0-9]+$/, '').trim();
+  
+  const item = catalog[sku] || catalog[raw];
+  
+  emptyState.style.display = 'none';
+  resultCard.classList.add('visible');
+
+  if (item) {
+    resultCard.classList.remove('not-found');
+    document.getElementById('foundBadge').style.display = 'flex';
+    document.getElementById('notFoundBadge').style.display = 'none';
+    document.getElementById('skuTag').textContent = sku;
+    document.getElementById('productBrand').textContent = item.brand || '';
+    document.getElementById('productName').textContent = item.model || '—';
+    document.getElementById('priceValue').innerHTML = formatPrice(item.price) + '<span class="price-currency">₸</span>';
+    document.getElementById('pp1Value').innerHTML = formatPrice(item.pp1) + '<span class="price-currency">₸</span>';
+  } else {
+    resultCard.classList.add('not-found');
+    document.getElementById('foundBadge').style.display = 'none';
+    document.getElementById('notFoundBadge').style.display = 'block';
+    document.getElementById('skuTag').textContent = raw;
+    document.getElementById('productBrand').textContent = '';
+    document.getElementById('productName').textContent = 'Товар не найден в базе';
+    document.getElementById('priceValue').innerHTML = '—<span class="price-currency">₸</span>';
+    document.getElementById('pp1Value').innerHTML = '—<span class="price-currency">₸</span>';
+  }
+}
+
+function formatPrice(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return '—';
+  return n.toLocaleString('ru-RU');
+}
+
+// Load catalog
+async function loadCatalog() {
+  const dot = document.getElementById('statusDot');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const countEl = document.getElementById('catalogCount');
+  
+  dot.className = 'status-dot loading';
+  refreshBtn.classList.add('spinning');
+
+  try {
+    const res = await fetch(WEB_APP_URL + '?action=catalog&t=' + Date.now());
+    const json = await res.json();
+    
+    catalog = {};
+    json.forEach(row => {
+      if (row.sku) catalog[row.sku] = row;
+    });
+    
+    countEl.textContent = json.length.toLocaleString('ru-RU');
+    dot.className = 'status-dot online';
+  } catch(e) {
+    dot.className = 'status-dot';
+    countEl.textContent = 'ошибка';
+  }
+
+  refreshBtn.classList.remove('spinning');
+}
+
+// Init
+async function init() {
+  const overlay = document.getElementById('loadingOverlay');
+  const fill = document.getElementById('loaderBarFill');
+  const loaderText = document.getElementById('loaderText');
+
+  fill.style.width = '30%';
+  
+  await loadCatalog();
+  
+  fill.style.width = '100%';
+  loaderText.textContent = 'Готово';
+  
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+    input.focus();
+  }, 400);
+}
+
+init();
+</script>
+</body>
+</html>
