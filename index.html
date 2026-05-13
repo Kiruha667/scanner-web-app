@@ -5,271 +5,54 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Сканер</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-body {
-  background: #0d0d14;
-  color: #f0f0f8;
-  font-family: system-ui, -apple-system, sans-serif;
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* HEADER */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 18px 12px;
-  border-bottom: 1px solid #1e1e2e;
-  flex-shrink: 0;
-}
-.logo {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  color: #4f7cff;
-  text-transform: uppercase;
-}
-.status {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  color: #6b6b85;
-}
-.status-dot {
-  width: 9px; height: 9px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 8px rgba(34,197,94,0.6);
-  flex-shrink: 0;
-}
+body { background: #0d0d14; color: #f0f0f8; font-family: system-ui,-apple-system,sans-serif; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 12px; border-bottom: 1px solid #1e1e2e; flex-shrink: 0; }
+.logo { font-size: 20px; font-weight: 900; letter-spacing: 0.12em; color: #4f7cff; text-transform: uppercase; }
+.status { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #6b6b85; }
+.status-dot { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.6); flex-shrink: 0; }
 .status-dot.err { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.5); }
 .status-dot.loading { background: #4f7cff; box-shadow: 0 0 8px rgba(79,124,255,0.5); animation: blink 1s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-/* SCROLL AREA */
-.scroll {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 16px 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* SCAN BOX */
-.scan-box {
-  background: #13131f;
-  border: 2px solid #252535;
-  border-radius: 16px;
-  padding: 16px;
-  transition: border-color 0.2s;
-}
+.scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; }
+.scan-box { background: #13131f; border: 2px solid #252535; border-radius: 16px; padding: 16px; transition: border-color 0.2s; }
 .scan-box.focused { border-color: #4f7cff; }
-
-.scan-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #6b6b85;
-  margin-bottom: 10px;
-}
-.scan-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-#barcodeInput {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-size: 24px;
-  font-weight: 700;
-  color: #f0f0f8;
-  min-width: 0;
-  caret-color: #4f7cff;
-}
-#barcodeInput::placeholder {
-  color: #2e2e42;
-  font-weight: 400;
-  font-size: 17px;
-}
-.clear-btn {
-  width: 34px; height: 34px;
-  border-radius: 8px;
-  background: #1c1c2e;
-  border: 1.5px solid #252535;
-  color: #6b6b85;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-}
+.scan-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6b85; margin-bottom: 10px; }
+.scan-row { display: flex; align-items: center; gap: 10px; }
+#barcodeInput { flex: 1; background: transparent; border: none; outline: none; font-size: 24px; font-weight: 700; color: #f0f0f8; min-width: 0; caret-color: #4f7cff; }
+#barcodeInput::placeholder { color: #2e2e42; font-weight: 400; font-size: 17px; }
+.clear-btn { width: 34px; height: 34px; border-radius: 8px; background: #1c1c2e; border: 1.5px solid #252535; color: #6b6b85; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .clear-btn.visible { opacity: 1; pointer-events: all; }
-
-/* RESULT CARD */
-.card {
-  background: #13131f;
-  border: 2px solid #252535;
-  border-radius: 16px;
-  overflow: hidden;
-  display: none;
-}
+.card { background: #13131f; border: 2px solid #252535; border-radius: 16px; overflow: hidden; display: none; }
 .card.found { display: block; border-color: #4f7cff; }
 .card.nf { display: block; border-color: #ef4444; }
-
-.card-head {
-  padding: 12px 16px;
-  background: rgba(79,124,255,0.07);
-  border-bottom: 1px solid #1e1e2e;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
+.card-head { padding: 12px 16px; background: rgba(79,124,255,0.07); border-bottom: 1px solid #1e1e2e; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .card.nf .card-head { background: rgba(239,68,68,0.06); }
-
-.badge-ok {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #22c55e;
-}
-.badge-ok-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 6px rgba(34,197,94,0.7);
-  flex-shrink: 0;
-}
-.badge-nf {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #ef4444;
-}
-.sku-tag {
-  font-size: 11px;
-  color: #6b6b85;
-  background: #1c1c2e;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid #252535;
-  max-width: 52%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
+.badge-ok { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #22c55e; }
+.badge-ok-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.7); flex-shrink: 0; }
+.badge-nf { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #ef4444; }
+.sku-tag { font-size: 11px; color: #6b6b85; background: #1c1c2e; padding: 4px 10px; border-radius: 6px; border: 1px solid #252535; max-width: 52%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
 .card-body { padding: 16px; }
-
-.product-brand {
-  font-size: 12px;
-  font-weight: 700;
-  color: #4f7cff;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.product-name {
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.35;
-  color: #f0f0f8;
-  margin-bottom: 16px;
-  word-break: break-word;
-}
+.product-brand { font-size: 12px; font-weight: 700; color: #4f7cff; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+.product-name { font-size: 18px; font-weight: 800; line-height: 1.35; color: #f0f0f8; margin-bottom: 16px; word-break: break-word; }
 .card.nf .product-name { color: #6b6b85; font-size: 16px; font-weight: 600; }
-
-.prices {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.p-block {
-  background: #1c1c2e;
-  border-radius: 12px;
-  padding: 14px;
-  border: 1px solid #252535;
-}
+.prices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.p-block { background: #1c1c2e; border-radius: 12px; padding: 14px; border: 1px solid #252535; }
 .p-block.main { border-color: #4f7cff; background: rgba(79,124,255,0.08); }
-
-.p-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #6b6b85;
-  margin-bottom: 6px;
-}
-.p-val {
-  font-size: 28px;
-  font-weight: 900;
-  color: #f0f0f8;
-  line-height: 1;
-}
+.p-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6b6b85; margin-bottom: 6px; }
+.p-val { font-size: 28px; font-weight: 900; color: #f0f0f8; line-height: 1; }
 .p-block.main .p-val { color: #4f7cff; }
-.p-unit {
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b6b85;
-  margin-left: 2px;
-}
-
-/* EMPTY */
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 40px 20px;
-  opacity: 0.3;
-}
+.p-unit { font-size: 14px; font-weight: 600; color: #6b6b85; margin-left: 2px; }
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 40px 20px; opacity: 0.3; }
 .empty svg { width: 56px; height: 56px; stroke: #6b6b85; }
 .empty p { font-size: 15px; color: #6b6b85; text-align: center; line-height: 1.6; }
-
-/* FOOTER */
-.footer {
-  padding: 10px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid #1e1e2e;
-  background: #13131f;
-  flex-shrink: 0;
-}
+.footer { padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1e1e2e; background: #13131f; flex-shrink: 0; }
 .ft { font-size: 12px; color: #6b6b85; }
 .ft b { color: #4f7cff; }
-.ref-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  color: #6b6b85;
-  display: flex;
-  border-radius: 8px;
-}
+.cache-label { font-size: 10px; color: #3a3a52; margin-left: 6px; }
+.ref-btn { background: none; border: none; cursor: pointer; padding: 6px; color: #6b6b85; display: flex; border-radius: 8px; }
 .ref-btn svg { width: 18px; height: 18px; stroke: currentColor; }
 .ref-btn.spin svg { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -286,7 +69,6 @@ body {
 </div>
 
 <div class="scroll">
-
   <div class="scan-box" id="scanBox">
     <div class="scan-label">Штрихкод</div>
     <div class="scan-row">
@@ -325,12 +107,14 @@ body {
     </svg>
     <p>Отсканируйте штрихкод<br>для поиска товара</p>
   </div>
-
 </div>
 
 <div class="footer">
-  <div class="ft">Товаров: <b id="countEl">—</b></div>
-  <button class="ref-btn" id="refBtn" onclick="loadCatalog()" title="Обновить">
+  <div class="ft">
+    Товаров: <b id="countEl">—</b>
+    <span class="cache-label" id="cacheLabel"></span>
+  </div>
+  <button class="ref-btn" id="refBtn" onclick="forceRefresh()" title="Обновить">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
       <path d="M21 2v6h-6M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6M21 12a9 9 0 01-15 6.7L3 16"/>
     </svg>
@@ -339,6 +123,9 @@ body {
 
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbw_ZusGkjrp5w3SRlbEZ4JVxygquk5C7bePlUwMI5BzVUjQ9vdUxd51YQEkoI3e06Ir/exec?action=catalog';
+const CACHE_KEY = 'scanner_catalog';
+const CACHE_TIME_KEY = 'scanner_catalog_time';
+const CACHE_TTL = 60 * 60 * 1000; // 1 час — фоновое обновление
 
 let catalog = {};
 let debounce = null;
@@ -351,7 +138,6 @@ const emptyEl = document.getElementById('emptyEl');
 
 inp.addEventListener('focus', () => sb.classList.add('focused'));
 inp.addEventListener('blur', () => sb.classList.remove('focused'));
-
 inp.addEventListener('input', () => {
   const v = inp.value.trim();
   cb.classList.toggle('visible', v.length > 0);
@@ -359,30 +145,18 @@ inp.addEventListener('input', () => {
   if (!v) { hide(); return; }
   debounce = setTimeout(() => find(v), 300);
 });
-
 inp.addEventListener('keydown', e => {
   if (e.key === 'Enter') { clearTimeout(debounce); find(inp.value.trim()); }
 });
 
-function clearInput() {
-  inp.value = '';
-  cb.classList.remove('visible');
-  hide();
-  inp.focus();
-}
-
-function hide() {
-  card.className = 'card';
-  emptyEl.style.display = '';
-}
+function clearInput() { inp.value = ''; cb.classList.remove('visible'); hide(); inp.focus(); }
+function hide() { card.className = 'card'; emptyEl.style.display = ''; }
 
 function find(raw) {
   if (!raw) return;
   const sku = raw.replace(/_[^_]+$/, '').replace(/[^0-9]+$/, '').trim();
   const item = catalog[sku] || catalog[raw];
-
   emptyEl.style.display = 'none';
-
   if (item) {
     card.className = 'card found';
     document.getElementById('badgeOk').style.display = 'flex';
@@ -404,39 +178,83 @@ function find(raw) {
   }
 }
 
-function fmt(v) {
-  const n = parseFloat(v);
-  return isNaN(n) ? '—' : n.toLocaleString('ru-RU');
+function fmt(v) { const n = parseFloat(v); return isNaN(n) ? '—' : n.toLocaleString('ru-RU'); }
+
+function setStatus(state, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (state === 'err' ? ' err' : state === 'loading' ? ' loading' : '');
+  document.getElementById('statusText').textContent = text;
 }
 
-async function loadCatalog() {
-  const dot = document.getElementById('statusDot');
-  const txt = document.getElementById('statusText');
-  const btn = document.getElementById('refBtn');
-  const cnt = document.getElementById('countEl');
+function applyData(json, fromCache) {
+  catalog = {};
+  json.forEach(r => { if (r.sku) catalog[r.sku] = r; });
+  document.getElementById('countEl').textContent = json.length.toLocaleString('ru-RU');
+  document.getElementById('cacheLabel').textContent = fromCache ? '(кэш)' : '';
+}
 
-  dot.className = 'status-dot loading';
-  txt.textContent = 'Загрузка...';
-  btn.classList.add('spin');
-
+async function fetchAPI() {
+  const res = await fetch(API + '&t=' + Date.now());
+  const json = await res.json();
   try {
-    const res = await fetch(API + '&t=' + Date.now());
-    const json = await res.json();
-    catalog = {};
-    json.forEach(r => { if (r.sku) catalog[r.sku] = r; });
-    cnt.textContent = json.length.toLocaleString('ru-RU');
-    dot.className = 'status-dot';
-    txt.textContent = 'Готово';
-  } catch (e) {
-    dot.className = 'status-dot err';
-    txt.textContent = 'Ошибка';
-  }
+    localStorage.setItem(CACHE_KEY, JSON.stringify(json));
+    localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+  } catch(e) {}
+  return json;
+}
 
+async function forceRefresh() {
+  const btn = document.getElementById('refBtn');
+  btn.classList.add('spin');
+  setStatus('loading', 'Обновление...');
+  try {
+    const json = await fetchAPI();
+    applyData(json, false);
+    setStatus('ok', 'Обновлено');
+  } catch(e) {
+    setStatus('err', 'Ошибка');
+  }
   btn.classList.remove('spin');
   inp.focus();
 }
 
-loadCatalog();
+async function init() {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    const cachedTime = parseInt(localStorage.getItem(CACHE_TIME_KEY) || '0');
+    if (cached) {
+      // Мгновенно показываем кэш
+      applyData(JSON.parse(cached), true);
+      setStatus('ok', 'Из кэша');
+      inp.focus();
+      // Фоновое обновление если кэш старше 1 часа
+      if (Date.now() - cachedTime > CACHE_TTL) {
+        setStatus('loading', 'Обновление...');
+        try {
+          const json = await fetchAPI();
+          applyData(json, false);
+          setStatus('ok', 'Готово');
+        } catch(e) {
+          setStatus('ok', 'Из кэша');
+        }
+      }
+      return;
+    }
+  } catch(e) {}
+
+  // Первый запуск — нет кэша
+  setStatus('loading', 'Загрузка...');
+  try {
+    const json = await fetchAPI();
+    applyData(json, false);
+    setStatus('ok', 'Готово');
+  } catch(e) {
+    setStatus('err', 'Ошибка');
+  }
+  inp.focus();
+}
+
+init();
 </script>
 </body>
 </html>
