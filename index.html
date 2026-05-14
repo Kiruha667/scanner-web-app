@@ -162,7 +162,18 @@ inp.addEventListener('blur', () => {
   }, 200);
 });
 
+let lastScanTime = 0;
+const SCAN_TIMEOUT = 2000; // если пауза > 2 сек — считаем новым сканом
+
 inp.addEventListener('input', () => {
+  const now = Date.now();
+  // Если прошло больше 2 секунд с последнего ввода — новый скан, стираем старое
+  if (now - lastScanTime > SCAN_TIMEOUT && inp.value.length > 1) {
+    const lastChar = inp.value.slice(-1);
+    inp.value = lastChar;
+  }
+  lastScanTime = now;
+
   const v = inp.value.trim();
   cb.classList.toggle('visible', v.length > 0);
   clearTimeout(debounce);
