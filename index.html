@@ -190,7 +190,7 @@ function hide() { card.className = 'card'; emptyEl.style.display = ''; }
 
 function find(raw) {
   if (!raw) return;
-  const sku = raw.replace(/_[^_]+$/, '').replace(/[^0-9]+$/, '').trim();
+  const sku = raw.trim();
   const item = catalog[sku] || catalog[raw];
   emptyEl.style.display = 'none';
   if (item) {
